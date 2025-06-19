@@ -1,12 +1,15 @@
 import os
 import time
+import random
 
 from textual.app import App, ComposeResult
-from textual.containers import Horizontal, Vertical
-from textual.widgets import Footer, Header, Static
+from textual.containers import Vertical
+from textual.widgets import Static, Input
+from textual.screen import ModalScreen
+import threading
 
-from wisdom_tree.audio import MediaPlayer, play_sound
-from wisdom_tree.config import RES_FOLDER, TIMER_START_SOUND
+from wisdom_tree.audio import MediaPlayer
+from wisdom_tree.config import RES_FOLDER
 from wisdom_tree.timer import PomodoroTimer
 from wisdom_tree.tree import TreeManager
 from wisdom_tree.utils import QuoteManager, StateManager
@@ -21,6 +24,14 @@ class TreeWidget(Static):
         super().__init__(**kwargs)
         self.tree_manager = tree_manager
         self.update_timer = None
+        self.weather_season = self._get_daily_season()
+
+    def _get_daily_season(self) -> str:
+        """Get weather season based on daily seed."""
+        random.seed(int(time.time() / (60 * 60 * 24)))
+        season = random.choice(["rain", "heavy_rain", "light_rain", "snow", "windy"])
+        random.seed()
+        return season
 
     def on_mount(self) -> None:
         """Set up periodic tree updates."""
@@ -29,8 +40,12 @@ class TreeWidget(Static):
     def update_tree(self) -> None:
         """Update the tree display."""
         art_content = self.get_current_art()
+        weather_overlay = self._generate_weather_overlay()
         age_text = f"\n\nAge: {self.tree_manager.get_age()}"
-        self.update(art_content + age_text)
+        
+        # Combine tree art with weather effects
+        combined_content = self._overlay_weather(art_content, weather_overlay)
+        self.update(combined_content + age_text)
 
     def get_current_art(self) -> str:
         """Get the current tree art as text."""
@@ -40,6 +55,79 @@ class TreeWidget(Static):
                 return f.read()
         except FileNotFoundError:
             return "🌱 Tree is growing..."
+
+    def _generate_weather_overlay(self) -> dict:
+        """Generate weather effects based on current season."""
+        current_time = time.time()
+        
+        weather_params = {
+            "rain": {"intensity": 30, "speed": 30, "char": "/", "color": "cyan"},
+            "light_rain": {"intensity": 20, "speed": 60, "char": "`", "color": "cyan"},
+            "heavy_rain": {"intensity": 40, "speed": 20, "char": "/", "color": "cyan"},
+            "snow": {"intensity": 30, "speed": 30, "char": ".", "color": "white"},
+            "windy": {"intensity": 20, "speed": 30, "char": "-", "color": "cyan"}
+        }
+        
+        params = weather_params.get(self.weather_season, {"intensity": 0, "speed": 30, "char": "", "color": "white"})
+        
+        # Use time-based seeding for animation
+        random.seed(int(current_time / int(params["speed"])))
+        
+        effects = []
+        for _ in range(int(params["intensity"])):
+            # Generate weather particle positions
+            row = random.randrange(2, 15)  # Spread across more of the tree area
+            col = random.randrange(5, 60)  # Wider horizontal spread
+            effects.append({
+                "row": row,
+                "col": col,
+                "char": params["char"],
+                "color": params["color"]
+            })
+        
+        random.seed()  # Reset seed
+        return {"effects": effects}
+
+    def _overlay_weather(self, tree_art: str, weather_data: dict) -> str:
+        """Overlay weather effects onto tree art."""
+        if not weather_data.get("effects"):
+            return tree_art
+            
+        lines = tree_art.split('\n')
+        
+        # Apply weather effects
+        for effect in weather_data["effects"]:
+            row, col = effect["row"], effect["col"]
+            char = effect["char"]
+            
+            # Check bounds
+            if 0 <= row < len(lines) and 0 <= col < len(lines[row]):
+                # Convert line to list for modification
+                line_chars = list(lines[row])
+                
+                # Only overlay on spaces to avoid overwriting tree art
+                if col < len(line_chars) and line_chars[col] == ' ':
+                    if effect["color"] == "cyan":
+                        line_chars[col] = f"[cyan]{char}[/cyan]"
+                    elif effect["color"] == "white":
+                        line_chars[col] = f"[white]{char}[/white]"
+                    else:
+                        line_chars[col] = char
+                    
+                    lines[row] = ''.join(line_chars)
+                # Also try to add weather at the end of shorter lines
+                elif col >= len(line_chars):
+                    # Extend line with spaces then add weather
+                    padding = ' ' * (col - len(line_chars))
+                    if effect["color"] == "cyan":
+                        weather_char = f"[cyan]{char}[/cyan]"
+                    elif effect["color"] == "white":
+                        weather_char = f"[white]{char}[/white]"
+                    else:
+                        weather_char = char
+                    lines[row] = lines[row] + padding + weather_char
+        
+        return '\n'.join(lines)
 
 
 class QuoteWidget(Static):
@@ -76,72 +164,76 @@ class TimerWidget(Static):
         if self.timer.istimer:
             if self.timer.isbreak:
                 remaining = self.timer.breakendtime - time.time()
-                status = "🛌 Break Time"
+                status = "Break"
             else:
                 remaining = self.timer.workendtime - time.time()
-                status = "🎯 Focus Time"
+                status = "Focus"
 
             if remaining > 0:
                 mins, secs = divmod(int(remaining), 60)
                 self.update(f"{status}: {mins:02d}:{secs:02d}")
             else:
-                self.update("⏰ Timer Complete!")
+                self.update("Complete!")
+                self.timer.istimer = False
         else:
-            self.update("⏱️ No active timer")
+            self.update("Press SPACE to start 25min focus")
 
 
-class MenuWidget(Static):
-    """Widget for navigation and menu options."""
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.menu_items = [
-            "🍅 Pomodoro Timer",
-            "🎵 Media Controls",
-            "📝 Custom Quotes",
-            "⚙️ Settings",
-            "❌ Exit",
-        ]
-        self.selected_index = 0
-
-    def on_mount(self) -> None:
-        """Initialize menu display."""
-        self.update_menu()
-
-    def update_menu(self) -> None:
-        """Update the menu display."""
-        menu_text = "\n".join(
-            f"{'> ' if i == self.selected_index else '  '}{item}"
-            for i, item in enumerate(self.menu_items)
-        )
-        self.update(menu_text)
-
-    def move_selection(self, direction: int) -> None:
-        """Move menu selection up or down."""
-        self.selected_index = (self.selected_index + direction) % len(self.menu_items)
-        self.update_menu()
+class HelpScreen(ModalScreen):
+    """Modal screen to show keyboard shortcuts."""
+    
+    BINDINGS = [
+        ("escape", "dismiss", "Close"),
+        ("q", "dismiss", "Close"),
+    ]
+    
+    def compose(self) -> ComposeResult:
+        """Compose the help screen."""
+        help_text = """
+┌─ Keyboard Shortcuts ─┐
+│                      │
+│  SPACE  Start/Stop   │
+│  M      Music Toggle │
+│  Y      YouTube      │
+│  R      New Quote    │
+│  ?      Help         │
+│  Q      Quit         │
+│                      │
+│  ESC    Close Help   │
+└──────────────────────┘
+        """
+        yield Static(help_text, id="help-content")
+    
+    def action_dismiss(self) -> None:
+        """Close the help screen."""
+        self.app.pop_screen()
 
 
-class NotificationWidget(Static):
-    """Widget for displaying temporary notifications."""
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.notification_timer = None
-
-    def show_notification(self, message: str, duration: float = 3.0) -> None:
-        """Show a notification for a specified duration."""
-        self.update(f"📢 {message}")
-        self.add_class("notification-visible")
-
-        if self.notification_timer:
-            self.notification_timer.cancel()
-
-        def hide_notification() -> None:
-            self.update("")
-            self.remove_class("notification-visible")
-
-        self.set_timer(duration, hide_notification)
+class YouTubeScreen(ModalScreen):
+    """Modal screen for YouTube search/URL input."""
+    
+    BINDINGS = [
+        ("escape", "dismiss", "Close"),
+        ("ctrl+c", "dismiss", "Close"),
+    ]
+    
+    def compose(self) -> ComposeResult:
+        """Compose the YouTube input screen."""
+        yield Static("🎵 Enter YouTube URL or search term:", id="youtube-prompt")
+        yield Input(placeholder="Search or paste URL...", id="youtube-input")
+        yield Static("ESC to cancel", id="youtube-help")
+    
+    def on_input_submitted(self, event: Input.Submitted) -> None:
+        """Handle YouTube input submission."""
+        query = event.value.strip()
+        if query:
+            self.dismiss(query)
+        else:
+            self.dismiss(None)
+    
+    def action_dismiss(self) -> None:
+        """Close the YouTube screen."""
+        self.dismiss(None)
 
 
 class WisdomTreeTextualApp(App):
@@ -149,83 +241,79 @@ class WisdomTreeTextualApp(App):
 
     CSS = """
     Screen {
-        background: $surface;
-    }
-    
-    #tree-container {
-        width: 60%;
-        height: 100%;
-        border: round $primary;
-        padding: 1;
-        background: $surface-lighten-1;
+        background: black;
     }
     
     #tree-widget {
+        height: 75%;
         text-align: center;
         content-align: center middle;
-        color: $success;
-    }
-    
-    #sidebar {
-        width: 40%;
-        height: 100%;
-        background: $surface-darken-1;
+        color: green;
     }
     
     #quote-widget {
-        height: 25%;
-        border: round $accent;
-        padding: 1;
+        height: 20%;
         text-align: center;
         content-align: center middle;
-        background: $surface-lighten-1;
-        color: $text;
+        color: white;
         text-style: italic;
     }
     
     #timer-widget {
-        height: 20%;
-        border: round $warning;
-        padding: 1;
+        height: 5%;
         text-align: center;
         content-align: center middle;
-        background: $surface-lighten-1;
-        color: $warning;
-        text-style: bold;
+        color: yellow;
     }
     
-    #menu-widget {
-        height: 40%;
-        border: round $secondary;
-        padding: 1;
-        background: $surface-lighten-1;
-        color: $text;
+    HelpScreen {
+        align: center middle;
     }
     
-    #notification-widget {
-        height: 15%;
-        border: round $error;
-        padding: 1;
-        text-align: center;
-        content-align: center middle;
+    #help-content {
+        width: 30;
+        height: 12;
         background: $surface;
+        color: $text;
+        border: thick $primary;
+        text-align: center;
+        content-align: center middle;
+        padding: 1;
     }
     
-    .notification-visible {
-        background: $warning;
+    YouTubeScreen {
+        align: center middle;
+    }
+    
+    #youtube-prompt {
+        width: 50;
+        height: 1;
+        text-align: center;
         color: $text;
-        text-style: bold;
-        border: thick $warning;
+        margin: 1;
+    }
+    
+    #youtube-input {
+        width: 50;
+        margin: 1;
+    }
+    
+    #youtube-help {
+        width: 50;
+        height: 1;
+        text-align: center;
+        color: $secondary;
+        margin: 1;
     }
     """
 
     BINDINGS = [
         ("q", "quit", "Quit"),
-        ("up", "menu_up", "Up"),
-        ("down", "menu_down", "Down"),
-        ("enter", "select", "Select"),
-        ("space", "toggle_timer", "Toggle Timer"),
+        ("space", "toggle_timer", "Start/Stop Timer"),
         ("m", "toggle_music", "Toggle Music"),
+        ("y", "show_youtube", "YouTube"),
+        ("r", "refresh_quote", "New Quote"),
+        ("question_mark", "show_help", "Help"),
     ]
 
     def __init__(self, **kwargs):
@@ -238,119 +326,87 @@ class WisdomTreeTextualApp(App):
         self.tree_manager = TreeManager(initial_age)
         self.timer = PomodoroTimer()
         self.quote_manager = QuoteManager()
-
+        
         # Initialize media player
-        music_list = list(RES_FOLDER.glob("*ogg"))
+        music_list = list(RES_FOLDER.glob("*.ogg"))
         self.media_player = MediaPlayer(music_list)
 
     def compose(self) -> ComposeResult:
         """Compose the app layout."""
-        yield Header()
-
-        with Horizontal():
-            # Main tree display area
-            with Vertical(id="tree-container"):
-                yield TreeWidget(self.tree_manager, id="tree-widget")
-
-            # Sidebar with controls
-            with Vertical(id="sidebar"):
-                yield QuoteWidget(self.quote_manager, id="quote-widget")
-                yield TimerWidget(self.timer, id="timer-widget")
-                yield MenuWidget(id="menu-widget")
-                yield NotificationWidget(id="notification-widget")
-
-        yield Footer()
+        with Vertical():
+            yield TreeWidget(self.tree_manager, id="tree-widget")
+            yield QuoteWidget(self.quote_manager, id="quote-widget")
+            yield TimerWidget(self.timer, id="timer-widget")
 
     def on_mount(self) -> None:
         """Initialize the app when mounted."""
-        self.title = "🌳 Wisdom Tree"
-        self.sub_title = "Focus, Grow, Thrive"
-
-        # Start background music
+        self.title = "Wisdom Tree"
+        
+        # Start background music if available
         if self.media_player.media:
             self.media_player.media.play()
 
-        # Show welcome notification
-        notification_widget = self.query_one("#notification-widget", NotificationWidget)
-        notification_widget.show_notification("🌱 Welcome to Wisdom Tree!")
-
-    def action_menu_up(self) -> None:
-        """Move menu selection up."""
-        menu_widget = self.query_one("#menu-widget", MenuWidget)
-        menu_widget.move_selection(-1)
-
-    def action_menu_down(self) -> None:
-        """Move menu selection down."""
-        menu_widget = self.query_one("#menu-widget", MenuWidget)
-        menu_widget.move_selection(1)
-
-    def action_select(self) -> None:
-        """Handle menu selection."""
-        menu_widget = self.query_one("#menu-widget", MenuWidget)
-        notification_widget = self.query_one("#notification-widget", NotificationWidget)
-
-        selected_item = menu_widget.menu_items[menu_widget.selected_index]
-
-        if "Pomodoro Timer" in selected_item:
-            self._handle_pomodoro_menu()
-        elif "Media Controls" in selected_item:
-            self._handle_media_menu()
-        elif "Custom Quotes" in selected_item:
-            notification_widget.show_notification(
-                "📝 Custom quotes feature coming soon!"
-            )
-        elif "Settings" in selected_item:
-            notification_widget.show_notification("⚙️ Settings feature coming soon!")
-        elif "Exit" in selected_item:
-            self.exit()
 
     def action_toggle_timer(self) -> None:
-        """Toggle timer pause/resume."""
-        if self.timer.istimer:
-            self.timer.pause = not self.timer.pause
-            notification_widget = self.query_one(
-                "#notification-widget", NotificationWidget
-            )
-            status = "⏸️ Paused" if self.timer.pause else "▶️ Resumed"
-            notification_widget.show_notification(f"Timer {status}")
-
+        """Start or stop the timer."""
+        if not self.timer.istimer:
+            # Start 25-minute focus session
+            self.timer.start_timer(1, None, 80)  # 25 minutes
+        else:
+            # Stop the timer
+            self.timer.istimer = False
+            self.timer.pause = False
+    
+    def action_show_help(self) -> None:
+        """Show the help screen."""
+        self.push_screen(HelpScreen())
+    
     def action_toggle_music(self) -> None:
         """Toggle music playback."""
         if self.media_player.media:
             if self.media_player.media.is_playing():
                 self.media_player.media.pause()
-                status = "⏸️ Music Paused"
             else:
                 self.media_player.media.play()
-                status = "▶️ Music Playing"
-        else:
-            status = "❌ No media loaded"
+    
+    def action_show_youtube(self) -> None:
+        """Show YouTube input screen."""
+        def handle_youtube_result(query):
+            if query:
+                # Start YouTube playback in background thread
+                threading.Thread(
+                    target=self._play_youtube_audio,
+                    args=(query,),
+                    daemon=True
+                ).start()
+        
+        self.push_screen(YouTubeScreen(), handle_youtube_result)
+    
+    def _play_youtube_audio(self, query: str) -> None:
+        """Play audio from YouTube in background thread."""
+        try:
+            # Determine if input is a URL or search query
+            import re
+            youtube_url_pattern = r'^(https?://)?(www\.)?(youtube\.com|youtu\.be)/.+$'
+            is_url = bool(re.match(youtube_url_pattern, query))
+            
+            # Use the media player's YouTube functionality
+            self.media_player.play_youtube(query, is_url, self.tree_manager.tree)
+        except Exception:
+            # Handle errors silently for now
+            pass
+    
+    def action_refresh_quote(self) -> None:
+        """Refresh the quote display with a new random quote."""
+        quote_widget = self.query_one("#quote-widget", QuoteWidget)
+        quote_widget.update_quote()
 
-        notification_widget = self.query_one("#notification-widget", NotificationWidget)
-        notification_widget.show_notification(status)
-
-    def _handle_pomodoro_menu(self) -> None:
-        """Handle Pomodoro timer selection."""
-        notification_widget = self.query_one("#notification-widget", NotificationWidget)
-
-        if not self.timer.istimer:
-            # Start a 25-minute Pomodoro session
-            self.timer.start_timer(1, None, 80)  # Index 1 for 25-min timer
-            play_sound(TIMER_START_SOUND)
-            notification_widget.show_notification("🍅 25-minute Pomodoro started!")
-        else:
-            notification_widget.show_notification("⏱️ Timer already running!")
-
-    def _handle_media_menu(self) -> None:
-        """Handle media controls."""
-        notification_widget = self.query_one("#notification-widget", NotificationWidget)
-        notification_widget.show_notification("🎵 Use 'M' to toggle music")
 
     def on_unmount(self) -> None:
         """Clean up when app is unmounted."""
         # Save tree state
         self.state_manager.save_tree_age(self.tree_manager.get_age())
-
+        
         # Stop media
         if self.media_player.media:
             self.media_player.media.stop()
