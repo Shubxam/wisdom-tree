@@ -100,6 +100,11 @@ class TreeManager:
         self.last_growth = time.time()
         self.growth_interval = 600  # 10 minutes
 
+    @property
+    def age(self) -> int:
+        """Get the current tree age."""
+        return int(self.tree.age)
+
     def update(self, quote_changed: bool = False) -> None:
         if quote_changed:
             self.tree.grow()

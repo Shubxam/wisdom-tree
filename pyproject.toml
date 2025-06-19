@@ -10,6 +10,7 @@ dependencies = [
     "python-vlc>=3.0.21203",
     "pytubefix>=9.2.0",
     "requests>=2.32.4",
+    "textual>=3.4.0",
 ]
 
 [build-system]
@@ -24,6 +25,7 @@ dev = [
 
 [project.scripts]
 wisdom-tree = "wisdom_tree.main:run"
+wisdom-tree-textual = "wisdom_tree.textual_main:run_textual"
 
 [tool.hatch.build]
 include = [
