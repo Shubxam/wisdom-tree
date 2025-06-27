@@ -5,8 +5,8 @@ from rich import get_console, reconfigure
 from rich import print as rprint
 
 # Update as needed.
-SRC_PATHS = ['tests', 'src']
-DOC_PATHS = ['docs', 'readme.md']
+SRC_PATHS = ['src']
+DOC_PATHS = ['docs', 'README.md']
 
 
 reconfigure(
