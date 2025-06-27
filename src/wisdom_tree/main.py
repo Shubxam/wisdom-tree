@@ -29,13 +29,13 @@ from wisdom_tree.ui import (
 )
 from wisdom_tree.utils import QuoteManager, StateManager, get_user_config_directory
 
-os.environ["VLC_VERBOSE"] = "-1"
+os.environ['VLC_VERBOSE'] = '-1'
 
 
 class WisdomTreeApp:
     def __init__(self, stdscr: Any):
         self.stdscr = stdscr
-        self.state_manager = StateManager(RES_FOLDER / "treedata")
+        self.state_manager = StateManager(RES_FOLDER / 'treedata')
         initial_age = self.state_manager.load_tree_age()
 
         self.tree_manager = TreeManager(initial_age)
@@ -45,7 +45,7 @@ class WisdomTreeApp:
         self.notifications = NotificationSystem()
         self.youtube_interface = YouTubeInterface()
 
-        music_list = list(RES_FOLDER.glob("*ogg"))
+        music_list = list(RES_FOLDER.glob('*ogg'))
         self.media_player = MediaPlayer(music_list)
         self.media_player.media.play()
 
@@ -60,14 +60,14 @@ class WisdomTreeApp:
 
     def handle_media_selection(self, index: int, maxx: int, stdscr: Any) -> None:
         if index == 0:  # YouTube music
-            if hasattr(self.media_player, "media"):
+            if hasattr(self.media_player, 'media'):
                 self.media_player.media.stop()
             self.youtube_interface.youtubedisplay = True
         elif index == 1:  # Concentration music
-            if hasattr(self.media_player, "media"):
+            if hasattr(self.media_player, 'media'):
                 self.media_player.media.stop()
             self.media_player.play_youtube(
-                "https://www.youtube.com/watch?v=oPVte6aMprI", True, self
+                'https://www.youtube.com/watch?v=oPVte6aMprI', True, self
             )
 
     def handle_media_seek(self, offset: int, maxx: int) -> None:
@@ -86,13 +86,13 @@ class WisdomTreeApp:
                 self.media_player.media.set_time(0)
 
         time_sec = self.media_player.media.get_time() / 1000
-        display_time = f"{int(time_sec / 60):02d}:{int(time_sec) % 60:02d}"
+        display_time = f'{int(time_sec / 60):02d}:{int(time_sec) % 60:02d}'
         try:
             progress = (
                 self.media_player.media.get_time()
                 / self.media_player.media.get_length()
             )
-            message = " " * (round(maxx * progress) - len(display_time)) + display_time
+            message = ' ' * (round(maxx * progress) - len(display_time)) + display_time
             self.notifications.notify(message, invert=True)
         except ZeroDivisionError:
             pass
@@ -101,8 +101,8 @@ class WisdomTreeApp:
         length = self.media_player.media.get_length()
         self.media_player.media.set_time(i_time=int(length * position))
         time_sec = self.media_player.media.get_time() / 1000
-        display_time = f"{int(time_sec / 60):02d}:{int(time_sec) % 60:02d}"
-        message = " " * (round(maxx * position) - len(display_time)) + display_time
+        display_time = f'{int(time_sec / 60):02d}:{int(time_sec) % 60:02d}'
+        message = ' ' * (round(maxx * position) - len(display_time)) + display_time
         self.notifications.notify(message, invert=True)
 
     def save_and_exit(self) -> None:
@@ -180,18 +180,18 @@ class WisdomTreeApp:
                         self.stdscr.erase()
                         self.stdscr.addstr(
                             int(maxy * 3 / 5),
-                            int(maxx / 2 - len("PAUSED") / 2),
-                            "PAUSED",
+                            int(maxx / 2 - len('PAUSED') / 2),
+                            'PAUSED',
                             curses.A_BOLD,
                         )
                         key = self.stdscr.getch()
-                        if key == ord(" "):
+                        if key == ord(' '):
                             self.pause = False
                             self.media_player.media.play()
                             self.stdscr.refresh()
                             if self.timer.istimer:
                                 self.timer.workendtime += time.time() - self.pausetime
-                        if key == ord("q"):
+                        if key == ord('q'):
                             self.save_and_exit()
                         time.sleep(0.1)
 
@@ -200,8 +200,8 @@ class WisdomTreeApp:
                         self.stdscr.erase()
                         self.stdscr.addstr(
                             int(maxy * 3 / 5),
-                            int(maxx / 2 - len("PRESS SPACE TO END BREAK") / 2),
-                            "PRESS SPACE TO END BREAK",
+                            int(maxx / 2 - len('PRESS SPACE TO END BREAK') / 2),
+                            'PRESS SPACE TO END BREAK',
                             curses.A_BOLD,
                         )
                         break_ended = self.timer.display_break_timer(
@@ -213,9 +213,9 @@ class WisdomTreeApp:
                         self.stdscr.refresh()
                         key = self.stdscr.getch()
 
-                        if key == ord(" "):
+                        if key == ord(' '):
                             self.timer.end_break_early(self.media_player.media)
-                        if key == ord("q"):
+                        if key == ord('q'):
                             self.save_and_exit()
                         time.sleep(0.1)
 
@@ -254,64 +254,64 @@ def key_events(stdscr: Any, app: WisdomTreeApp, maxx: int) -> None:
     # Update menu activity timestamp on navigation keys
     if key in (
         curses.KEY_UP,
-        ord("k"),
+        ord('k'),
         curses.KEY_DOWN,
-        ord("j"),
+        ord('j'),
         curses.KEY_RIGHT,
-        ord("l"),
+        ord('l'),
         curses.KEY_LEFT,
-        ord("h"),
+        ord('h'),
         27,
     ):
         app.menu.menu_last_active = time.time()
 
     # Menu navigation
-    if key in (curses.KEY_UP, ord("k")):
+    if key in (curses.KEY_UP, ord('k')):
         app.menu.navigate_up()
-    elif key in (curses.KEY_DOWN, ord("j")):
+    elif key in (curses.KEY_DOWN, ord('j')):
         app.menu.navigate_down()
-    elif key in (curses.KEY_RIGHT, ord("l")):
+    elif key in (curses.KEY_RIGHT, ord('l')):
         app.menu.navigate_right()
-    elif key in (curses.KEY_LEFT, ord("h"), 27):
+    elif key in (curses.KEY_LEFT, ord('h'), 27):
         app.menu.navigate_left()
     elif key == curses.KEY_ENTER or key in [10, 13]:
         main_item, sub_index = app.menu.select()
-        if main_item == "POMODORO TIMER":
+        if main_item == 'POMODORO TIMER':
             app.timer.start_timer(sub_index, stdscr, maxx)
             play_sound(TIMER_START_SOUND)
-        elif main_item == "MEDIA":
+        elif main_item == 'MEDIA':
             app.handle_media_selection(sub_index, maxx, stdscr)
             play_sound(TIMER_START_SOUND)
         app.menu.show_sub_menu = False
 
     # Application controls
-    if key == ord("q"):
+    if key == ord('q'):
         app.save_and_exit()
-    if key == ord("u"):
+    if key == ord('u'):
         toggle_sounds()
-    if key == ord(" "):
+    if key == ord(' '):
         app.handle_pause()
-    if key == ord("m"):
+    if key == ord('m'):
         app.media_player.media.pause()
-    if key == ord("]"):
+    if key == ord(']'):
         new_volume = app.media_player.media.audio_get_volume() + 1
         adjust_media_volume(app, new_volume, maxx)
-    if key == ord("["):
+    if key == ord('['):
         new_volume = app.media_player.media.audio_get_volume() - 1
         adjust_media_volume(app, new_volume, maxx)
-    if key == ord("}"):
+    if key == ord('}'):
         EFFECT_VOLUME = min(100, EFFECT_VOLUME + 1)
-        app.notifications.notify(f"Effects: {EFFECT_VOLUME}%", invert=True)
-    if key == ord("{"):
+        app.notifications.notify(f'Effects: {EFFECT_VOLUME}%', invert=True)
+    if key == ord('{'):
         EFFECT_VOLUME = max(0, EFFECT_VOLUME - 1)
-        app.notifications.notify(f"Effects: {EFFECT_VOLUME}%", invert=True)
-    if key == ord("="):
+        app.notifications.notify(f'Effects: {EFFECT_VOLUME}%', invert=True)
+    if key == ord('='):
         app.handle_media_seek(10000, maxx)
-    if key == ord("-"):
+    if key == ord('-'):
         app.handle_media_seek(-10000, maxx)
-    if key == ord("r"):
+    if key == ord('r'):
         app.media_player.isloop = not app.media_player.isloop
-        app.notifications.notify(f"REPEAT: {app.media_player.isloop}")
+        app.notifications.notify(f'REPEAT: {app.media_player.isloop}')
     for i in range(10):
         if key == ord(str(i)):
             app.handle_media_position(i / 10, maxx)
@@ -325,12 +325,12 @@ def main(stdscr: Any) -> None:
 
 def run():
     """Entry point for the CLI command."""
-    config_file = Path(get_user_config_directory()) / "wisdom-tree" / QUOTE_FILE_NAME
+    config_file = Path(get_user_config_directory()) / 'wisdom-tree' / QUOTE_FILE_NAME
     if config_file.exists():
         # Note: This would need to be handled differently in the new structure
         pass
     curses.wrapper(main)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     run()

@@ -17,18 +17,18 @@ class PomodoroTimer:
         self.breakendtime = 0
         self.pausetime = 0
         self.pause = False
-        self.breakendtext = "BREAK IS OVER, PRESS ENTER TO START NEW TIMER"
+        self.breakendtext = 'BREAK IS OVER, PRESS ENTER TO START NEW TIMER'
 
     def start_timer(self, timer_index: int, stdscr: Any, maxx: int) -> None:
         if timer_index == 5:  # END TIMER NOW
-            self.breakendtext = "TIMER IS OVER, PRESS ENTER"
+            self.breakendtext = 'TIMER IS OVER, PRESS ENTER'
             self.worktime = 0
             self.breaktime = 0
             self.istimer = False
         elif timer_index == 4:  # CUSTOM TIMER
             self._handle_custom_timer(stdscr, maxx)
         else:  # Preset timers
-            self.breakendtext = "BREAK IS OVER, PRESS ENTER TO START NEW TIMER"
+            self.breakendtext = 'BREAK IS OVER, PRESS ENTER TO START NEW TIMER'
             self.istimer = True
             self.worktime = TIMER_WORK[timer_index]
             self.breaktime = TIMER_BREAK[timer_index]
@@ -36,8 +36,8 @@ class PomodoroTimer:
 
     def _handle_custom_timer(self, stdscr: Any, maxx: int) -> None:
         try:
-            curses.textpad.rectangle(stdscr, 0, 0, 2, maxx - 1)
-            stdscr.addstr(1, 1, "ENTER WORK LENGTH (min) : ")
+            curses.textpad.rectangle(stdscr, 0, 0, 2, maxx - 1)  # type: ignore
+            stdscr.addstr(1, 1, 'ENTER WORK LENGTH (min) : ')
             stdscr.refresh()
 
             curses.echo()
@@ -48,8 +48,8 @@ class PomodoroTimer:
 
             self.worktime = int(stdscr.getstr()) * 60
 
-            stdscr.addstr(1, 1, " " * (maxx - 2))
-            stdscr.addstr(1, 1, "ENTER BREAK LENGTH (min) : ")
+            stdscr.addstr(1, 1, ' ' * (maxx - 2))
+            stdscr.addstr(1, 1, 'ENTER BREAK LENGTH (min) : ')
             stdscr.refresh()
 
             self.breaktime = int(stdscr.getstr()) * 60
@@ -86,7 +86,7 @@ class PomodoroTimer:
     def display_work_timer(self, stdscr: Any, maxy: int, maxx: int) -> None:
         if self.istimer:
             remaining = max(0, int(self.workendtime - time.time()))
-            timer_text = f"WORK: {remaining // 60:02d}:{remaining % 60:02d}"
+            timer_text = f'WORK: {remaining // 60:02d}:{remaining % 60:02d}'
             stdscr.addstr(
                 int(maxy * 10 / 11),
                 int(maxx / 2 - len(timer_text) // 2),
@@ -98,9 +98,9 @@ class PomodoroTimer:
         if self.isbreak:
             seconds_left = int(self.breakendtime) - int(time.time())
             timer_text = (
-                "Break ends in: "
+                'Break ends in: '
                 + str(int(seconds_left / 60)).zfill(2)
-                + ":"
+                + ':'
                 + str(seconds_left % 60).zfill(2)
             )
             stdscr.addstr(

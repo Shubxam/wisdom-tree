@@ -7,19 +7,19 @@ from wisdom_tree.config import QUOTE_FILE
 
 
 def get_user_config_directory() -> str:
-    if os.name == "nt":
-        appdata = os.getenv("LOCALAPPDATA")
+    if os.name == 'nt':
+        appdata = os.getenv('LOCALAPPDATA')
         if appdata:
             return appdata
-        appdata = os.getenv("APPDATA")
+        appdata = os.getenv('APPDATA')
         if appdata:
             return appdata
-        return None
+        return ''
 
-    xdg_config_home = os.getenv("XDG_CONFIG_HOME")
+    xdg_config_home = os.getenv('XDG_CONFIG_HOME')
     if xdg_config_home:
         return xdg_config_home
-    return os.path.join(os.path.expanduser("~"), ".config")
+    return os.path.join(os.path.expanduser('~'), '.config')
 
 
 class QuoteManager:
@@ -28,14 +28,14 @@ class QuoteManager:
 
     def _load_quotes(self) -> list[str]:
         try:
-            with open(QUOTE_FILE, encoding="utf8") as f:
+            with open(QUOTE_FILE, encoding='utf8') as f:
                 return f.read().splitlines()
         except Exception:
             return []
 
     def get_random_quote(self) -> str:
         if not self.quotes_cache:
-            return "Keep growing, keep learning."
+            return 'Keep growing, keep learning.'
         return random.choice(self.quotes_cache)
 
     def reload_quotes(self) -> None:
@@ -48,14 +48,14 @@ class StateManager:
 
     def save_tree_age(self, age: int) -> None:
         try:
-            with open(self.state_file, "wb") as f:
+            with open(self.state_file, 'wb') as f:
                 pickle.dump(age, f, protocol=None)
         except Exception as e:
-            print(f"Error saving tree age: {e}")
+            print(f'Error saving tree age: {e}')
 
     def load_tree_age(self) -> int:
         try:
-            with open(self.state_file, "rb") as f:
+            with open(self.state_file, 'rb') as f:
                 return pickle.load(f)
         except Exception:
             return 1
@@ -66,11 +66,11 @@ class StateManager:
 
 def get_random_line_from_file(file_path: Path) -> str:
     try:
-        with open(file_path, encoding="utf8") as f:
+        with open(file_path, encoding='utf8') as f:
             lines = f.read().splitlines()
-        return random.choice(lines) if lines else ""
+        return random.choice(lines) if lines else ''
     except Exception:
-        return ""
+        return ''
 
 
 def ensure_directory_exists(path: Path) -> None:

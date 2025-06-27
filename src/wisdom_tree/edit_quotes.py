@@ -26,16 +26,16 @@ class Scanner:
         self.source = self.original_file.read()
         self.original_file.close()
         # self.edited_file will append, so 'edited_quotes.txt' needs to be empty before running the script
-        self.edited_file = open(new_text_path, "a")
+        self.edited_file = open(new_text_path, 'a')
         # the current index of self.source, or the current character we are looking at
         self.current = 0
 
         self.punctuation = {
-            " ": lambda c: self.whitespace(c),
-            ".": lambda c: self.period(c),
-            ",": lambda c: self.colon_comma(c),
-            ":": lambda c: self.colon_comma(c),
-            ";": lambda c: self.misc_punc(c),
+            ' ': lambda c: self.whitespace(c),
+            '.': lambda c: self.period(c),
+            ',': lambda c: self.colon_comma(c),
+            ':': lambda c: self.colon_comma(c),
+            ';': lambda c: self.misc_punc(c),
         }
 
     def close(self):
@@ -79,16 +79,16 @@ class Scanner:
         next_c = self.peek()
         # if there is no whitespace and no newline after this punctuation
         if (
-            (next_c != " ")
-            and (next_c != "\n")
+            (next_c != ' ')
+            and (next_c != '\n')
             and (next_c != '"')
             and (next_c != "'")
-            and (next_c != "]")
-            and (next_c != ")")
-            and (next_c != "}")
+            and (next_c != ']')
+            and (next_c != ')')
+            and (next_c != '}')
         ):
             self.add_char(current_c)  # add the current punctuation
-            self.add_char(" ")  # and add whitespace
+            self.add_char(' ')  # and add whitespace
         else:
             self.add_char(current_c)
 
@@ -98,7 +98,7 @@ class Scanner:
         Else, misc_punc()
         """
         next_c = self.peek()
-        if next_c == ".":
+        if next_c == '.':
             self.add_char(current_c)
         else:
             self.misc_punc(current_c)
@@ -137,12 +137,12 @@ class Scanner:
 
 
 def main():
-    original_text_path = "qts.txt"
-    new_text_path = "edited_quotes.txt"
+    original_text_path = 'qts.txt'
+    new_text_path = 'edited_quotes.txt'
 
     # clear the 'new' file before starting and then close it
-    with open(new_text_path, "w") as f:
-        f.write("")  # overwrites the file completely
+    with open(new_text_path, 'w') as f:
+        f.write('')  # overwrites the file completely
 
     scanner = Scanner(original_text_path, new_text_path)
     scanner.scan_file()

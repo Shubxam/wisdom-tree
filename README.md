@@ -90,7 +90,7 @@ While using lofi-radio use `n` to skip song and `r` to replay
 
 `space` to pause and unpause.
 
-`+`, `-` to seek 10 sec forwards and backwords
+`+`, `-` to seek 10 sec forwards and backwards
 
 number keys `0-9` to go 0-90% into the audio. Eg; pressing 6 will take you 60% into the audio, 7 will take you 70% and so on.
 
@@ -99,7 +99,7 @@ To exit press `q`
 ## Custom quotes
 
 The user can use any set of quotes by adding a file called `qts.txt` with
-one qoute per line to the default config location:
+one quote per line to the default config location:
 
 {`CONFIG_LOCATION`}/wisdom-tree
 
