@@ -101,7 +101,7 @@ To exit press `q`
 The user can use any set of quotes by adding a file called `qts.txt` with
 one quote per line to the default config location:
 
-{`CONFIG_LOCATION`}/wisdom-tree
+{`CONFIG_LOCATION`}/wisdom-tree/
 
 where {`CONFIG_LOCATION`} is the default place to save configuration files
 for the operating system:
