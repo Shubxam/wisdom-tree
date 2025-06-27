@@ -2,7 +2,6 @@ import os
 import pickle
 import random
 from pathlib import Path
-from typing import List
 
 from wisdom_tree.config import QUOTE_FILE
 
@@ -27,7 +26,7 @@ class QuoteManager:
     def __init__(self):
         self.quotes_cache = self._load_quotes()
 
-    def _load_quotes(self) -> List[str]:
+    def _load_quotes(self) -> list[str]:
         try:
             with open(QUOTE_FILE, encoding="utf8") as f:
                 return f.read().splitlines()
@@ -67,7 +66,7 @@ class StateManager:
 
 def get_random_line_from_file(file_path: Path) -> str:
     try:
-        with open(file_path, "r", encoding="utf8") as f:
+        with open(file_path, encoding="utf8") as f:
             lines = f.read().splitlines()
         return random.choice(lines) if lines else ""
     except Exception:

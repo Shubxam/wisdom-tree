@@ -22,7 +22,7 @@ class Scanner:
         self.new_text_path = new_text_path
 
         # open the original file, copy it, then close it
-        self.original_file = open(original_text_path, "r")
+        self.original_file = open(original_text_path)
         self.source = self.original_file.read()
         self.original_file.close()
         # self.edited_file will append, so 'edited_quotes.txt' needs to be empty before running the script

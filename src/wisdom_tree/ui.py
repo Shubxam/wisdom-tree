@@ -4,7 +4,7 @@ import re
 import time
 from typing import Any
 
-from wisdom_tree.config import TIMER_WORK_MINS, TIMER_BREAK_MINS
+from wisdom_tree.config import TIMER_BREAK_MINS, TIMER_WORK_MINS
 
 YOUTUBE_REGEX = re.compile(r"^(https?\:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$")
 
@@ -35,7 +35,7 @@ def add_animated_text(
 
 
 def print_art(stdscr: Any, file_path: str, x: int, y: int, color_pair: int) -> None:
-    with open(file_path, "r", encoding="utf8") as f:
+    with open(file_path, encoding="utf8") as f:
         lines = f.readlines()
 
     for i in range(len(lines)):

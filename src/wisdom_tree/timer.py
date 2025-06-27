@@ -86,7 +86,7 @@ class PomodoroTimer:
     def display_work_timer(self, stdscr: Any, maxy: int, maxx: int) -> None:
         if self.istimer:
             remaining = max(0, int(self.workendtime - time.time()))
-            timer_text = "WORK: {:02d}:{:02d}".format(remaining // 60, remaining % 60)
+            timer_text = f"WORK: {remaining // 60:02d}:{remaining % 60:02d}"
             stdscr.addstr(
                 int(maxy * 10 / 11),
                 int(maxx / 2 - len(timer_text) // 2),
