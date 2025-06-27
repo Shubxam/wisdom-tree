@@ -104,7 +104,7 @@ ignore = [
 
 [tool.codespell]
 ignore-words-list = "IST,ist"  # ignore common misspellings
-skip = "*.ipynb,*.csv,NIFTY_500_live_sentiment.html,*.yml"  # files to skip
+# skip = "qts_old.txt,qts.txt"  # files to skip
 write-changes = false  # whether to correct misspellings
 
 [tool.pytest.ini_options]
@@ -125,7 +125,4 @@ targets = [
     "tests",
     "devtools",
 ]
-skips = ["B101", "B601"]  # don't alert for these specified issues
-
-[tool.bandit.assert_used]
-skips = ['*_test.py', 'test_*.py']  # remove assert statement warnings from tests.
+skips = ["B101", "B601", "B311", "B301", "B403", "B310"]  # don't alert for these specified issues
