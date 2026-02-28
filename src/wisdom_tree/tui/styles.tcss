@@ -1,0 +1,142 @@
+/* Wisdom Tree Textual UI Styles - Compact Layout */
+
+Screen {
+    background: $background;
+    color: $text;
+}
+
+/* Main container - no borders, compact */
+#main-container {
+    width: 100%;
+    height: 100%;
+    layout: vertical;
+    padding: 0;
+}
+
+/* Tree widget - no border, just content */
+#tree {
+    width: 100%;
+    height: auto;
+    content-align: center middle;
+    color: $success;
+    padding: 1 0;
+}
+
+/* Quote widget - subtle separator, no box */
+#quote {
+    width: 100%;
+    height: auto;
+    content-align: center middle;
+    color: $text-muted;
+    text-style: italic;
+    padding: 1 2;
+    border-top: tall $primary-background;
+}
+
+/* Timer widget - inline status, no box */
+#timer {
+    width: 100%;
+    height: auto;
+    content-align: center middle;
+    color: $warning;
+    text-style: bold;
+    padding: 1 0;
+}
+
+/* YouTube search modal */
+YouTubeSearchScreen {
+    align: center middle;
+}
+
+#youtube-dialog {
+    width: 60;
+    height: auto;
+    background: $panel;
+    border: heavy $accent;
+    padding: 2;
+}
+
+#youtube-label {
+    width: 100%;
+    content-align: center middle;
+    color: $accent;
+    text-style: bold;
+    margin-bottom: 1;
+}
+
+#youtube-input {
+    width: 100%;
+    margin-bottom: 1;
+}
+
+#youtube-hint {
+    width: 100%;
+    content-align: center middle;
+    color: $text-muted;
+    text-style: italic;
+}
+
+/* Help modal */
+HelpScreen {
+    align: center middle;
+}
+
+#help-dialog {
+    width: 50;
+    height: auto;
+    background: $panel;
+    border: heavy $primary;
+    padding: 2;
+}
+
+#help-content {
+    width: 100%;
+    height: auto;
+}
+
+/* Command Palette modal */
+CommandPaletteScreen {
+    align: center middle;
+}
+
+#command-palette {
+    width: 70;
+    height: 30;
+    background: $panel;
+    border: heavy $accent;
+    padding: 1;
+}
+
+#palette-title {
+    width: 100%;
+    content-align: center middle;
+    color: $accent;
+    text-style: bold;
+    margin-bottom: 1;
+}
+
+#command-search {
+    width: 100%;
+    margin-bottom: 1;
+}
+
+#command-list-container {
+    width: 100%;
+    height: 1fr;
+    border: tall $primary-background;
+    padding: 1;
+}
+
+#command-list {
+    width: 100%;
+    height: 100%;
+}
+
+#command-list > ListItem {
+    padding: 1;
+    height: auto;
+}
+
+#command-list > ListItem:hover {
+    background: $primary-background;
+}
