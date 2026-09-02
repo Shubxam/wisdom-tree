@@ -10,8 +10,7 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "python-vlc>=3.0.21203",
-    "pytubefix>=9.2.0",
-    "requests>=2.32.4",
+    "yt-dlp>=2026.8.19",
 ]
 [project.optional-dependencies]
 dev = [
