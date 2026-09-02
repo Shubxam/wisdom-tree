@@ -149,5 +149,5 @@ def main():
     scanner.close()
 
 
-# run the script
-main()
+if __name__ == '__main__':
+    main()
