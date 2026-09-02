@@ -53,14 +53,14 @@ def get_youtube_links(search_string: str) -> str:
 
 
 def adjust_media_volume(tree_instance: Any, new_volume: int, maxx: int) -> None:
-    tree_instance.media.audio_set_volume(max(0, min(100, new_volume)))
-    tree_instance.notifyendtime = int(time.time()) + 2
-    volume_str = f'{round(new_volume)}%'
-    tree_instance.notifystring = (
-        ' ' * round(maxx * (new_volume / 100) - len(volume_str) - 2) + volume_str
+    volume = max(0, min(100, new_volume))
+    tree_instance.media_player.media.audio_set_volume(volume)
+    volume_str = f'{volume}%'
+    padding = max(0, round(maxx * (volume / 100) - len(volume_str) - 2))
+    tree_instance.notifications.notify(
+        ' ' * padding + volume_str,
+        invert=True,
     )
-    tree_instance.invert = True
-    tree_instance.isnotify = True
 
 
 class MediaPlayer:
